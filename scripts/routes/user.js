@@ -29,17 +29,17 @@ module.exports = {
 
         route.post('/register', function (req, res) {
             if(typeof req.body.password === 'undefined' || req.body.password.length < 3) {
-                res.send('Password is not long enough!');
+                res.send({saved: false, message: 'Password is not long enough!'});
                 return;
             }
 
             if(typeof req.body.name === 'undefined' || req.body.name.length < 3){
-                res.send('Username is not long enough!');
+                res.send({saved: false, message: 'Username is not long enough!'});
                 return;
             }
 
             if(typeof req.body.email === 'undefined' || req.body.email.length < 3) {
-                res.send('Email is not valid!');
+                res.send({saved: false, message: 'Email is not valid!'});
                 return;
             }
 

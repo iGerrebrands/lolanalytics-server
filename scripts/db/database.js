@@ -26,7 +26,7 @@ module.exports = {
     createUser: function (obj, callback) {
         User.findOne({name: obj.name}, function (err, doc) {
             if(doc !== null) {
-                callback({saved: false, error: 'Username Already Exists!'});
+                callback({saved: false, message: 'Username Already Exists!'});
                 return;
             }
             new User({
@@ -36,9 +36,9 @@ module.exports = {
             }).save(function (err) {
                 if(err){
                     console.log(err);
-                    callback({saved: false, error: 'Something went wrong with the DB!'});
+                    callback({saved: false, message: 'Something went wrong with the DB!'});
                 } else {
-                    callback({saved: true});
+                    callback({saved: true, message: 'You are registerd!'});
                 }
             });
         });
