@@ -25,6 +25,7 @@ module.exports = {
                     res.json({
                         token: token
                     });
+                    console.log('Login: User ' + req.body.name + ' just logged in!');
                 }
             });
         });
@@ -51,6 +52,7 @@ module.exports = {
                 email: req.body.email
             }, function (dbRes) {
                 res.json(dbRes);
+                console.log('Register: User ' + req.body.name + ' just registered!');
             });
         });
 
