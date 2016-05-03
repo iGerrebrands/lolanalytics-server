@@ -9,7 +9,7 @@ var User = mongoose.model('User', {
     created: {type: Date, default: Date.now},
     edited: {type: Date, default: Date.now},
     lastLogin: {type: Date, default: Date.now},
-    summoners: [String]
+    summoners: []
 });
 
 module.exports = {

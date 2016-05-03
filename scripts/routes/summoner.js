@@ -17,7 +17,7 @@ module.exports = {
       route.get('/by-id/:id?', function (req, res) {
           auth.isVerified(req, function (ver) {
               if (ver) {
-                  riot.getSummonerById(req, res);
+                  riot.getSummonerById(req.params.id, req, res);
               } else {
                   res.sendStatus(401);
               }

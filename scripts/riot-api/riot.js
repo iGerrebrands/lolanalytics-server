@@ -17,10 +17,10 @@ module.exports = {
             res.sendStatus(400);
         }
     },
-    getSummonerById: function (req, res) {
+    getSummonerById: function (id, req, res) {
         var resp = res;
         if(typeof req.params.id !== 'undefined'){
-            request('https://euw.api.pvp.net/api/lol/euw/v1.4/summoner/' + req.params.id + '?api_key=' + CONFIG.API.KEY, function (err, res, body) {
+            request('https://euw.api.pvp.net/api/lol/euw/v1.4/summoner/' + id + '?api_key=' + CONFIG.API.KEY, function (err, res, body) {
                 if(!err && res.statusCode === 200) {
                     var data = JSON.parse(body);
                     resp.json(data);
@@ -31,5 +31,15 @@ module.exports = {
         } else {
             res.sendStatus(400);
         }
+    },
+    serverGetSummonerIdByName: function (name, callback) {
+        request('https://euw.api.pvp.net/api/lol/euw/v1.4/summoner/by-name/' + name + '?api_key=' + CONFIG.API.KEY, function (err, res, body) {
+            if(!err && res.statusCode === 200) {
+                var summoner = JSON.parse(body)[name.toLowerCase()];
+                callback({ok: true, data: summoner});
+            } else {
+                callback({ok: false})
+            }
+        });
     }
 };

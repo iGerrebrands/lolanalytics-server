@@ -1,5 +1,7 @@
 var auth = require('../auth/authHandler.js');
 var db = require('../db/database.js');
+var riot = require('../riot-api/riot.js');
+var _ = require('underscore');
 
 module.exports = {
     setupRoutes: function (express) {
@@ -50,7 +52,6 @@ module.exports = {
             }, function (dbRes) {
                 res.json(dbRes);
             });
-
         });
 
         route.get('/summoners', function (req, res) {
@@ -67,31 +68,45 @@ module.exports = {
                     res.sendStatus(401);
                 }
             });
-
-
         });
 
         route.post('/summoner', function (req, res) {
+            var resp = res;
             auth.isVerified(req, function (ver){
                 if(ver) {
-                    // CHECK IF VALID SUMMONER ID
-                    auth.getTokenData(req, function(decoded) {
-                        db.getUser({
-                            name: decoded.user.name
-                        }, function(doc) {
-                            doc.summoners.push(req.body.id);
-                            doc.save(function(err) {
-                                if(err) {
-                                    res.sendStatus(500);
-                                } else {
-                                    res.sendStatus(200);
-                                }
+                    // CHECK IF VALID SUMMONER
+                    riot.serverGetSummonerIdByName(req.body.name, function (res) {
+                        if(res.ok) {
+                            var summoner = res.data;
+                            auth.getTokenData(req, function(decoded) {
+                                db.getUser({
+                                    name: decoded.user.name
+                                }, function(doc) {
+                                    var contains = false;
+                                    _.each(doc.summoners, function (_summoner) {
+                                        if(_summoner.id == summoner.id)
+                                            contains = true;
+                                    });
+                                    if(!contains) {
+                                        doc.summoners.push(summoner);
+                                        doc.save(function(err) {
+                                            if(err !== null) {
+                                                resp.status(500).json({message:'Internal server error(please contact the administrators)'});
+                                            } else {
+                                                resp.json({ok: true});
+                                            }
+                                        });
+                                    } else {
+                                        resp.status(400).json({message:"You already added this summoner!"});
+                                    }
+                                });
                             });
-
-                        });
+                        } else {
+                            resp.status(400).json({message: "Summoner does not exists!" });
+                        }
                     });
                 } else {
-                    res.sendStatus(401);
+                    resp.sendStatus(401);
                 }
             })
         });
