@@ -100,7 +100,7 @@ module.exports = {
                                             if(err !== null) {
                                                 resp.status(500).json({ok: false, message:'Internal server error(please contact the administrators)'});
                                             } else {
-                                                resp.json({ok: true});
+                                                resp.json({ok: true, message: 'Summoner added successfully'});
                                             }
                                         });
                                     } else {
