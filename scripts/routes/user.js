@@ -7,14 +7,14 @@ module.exports = {
     setupRoutes: function (express) {
         var route = express.Router();
 
+        // post: api/user/login  body: name, password
         route.post('/login', function (req, res) {
-            // Handle login here
             db.getUser({
                 name: req.body.name,
                 password: req.body.password
             }, function (doc) {
                 if(doc === null) {
-                    res.sendStatus(401);
+                    res.status(400).json({ok: false, message: 'Invalid login credentails'});
                 } else {
                     var token = auth.createToken({
                         name: doc.name,
@@ -23,6 +23,8 @@ module.exports = {
                         lastLogin: doc.lastLogin
                     });
                     res.json({
+                        ok: true,
+                        message: 'Logged in successfully',
                         token: token
                     });
                     console.log('Login: User ' + req.body.name + ' just logged in!');
@@ -30,19 +32,20 @@ module.exports = {
             });
         });
 
+        // post: api/user/register body: name, password, email
         route.post('/register', function (req, res) {
             if(typeof req.body.password === 'undefined' || req.body.password.length < 3) {
-                res.send({saved: false, message: 'Password is not long enough!'});
+                res.send({ok: false, message: 'Password is not long enough'});
                 return;
             }
 
             if(typeof req.body.name === 'undefined' || req.body.name.length < 3){
-                res.send({saved: false, message: 'Username is not long enough!'});
+                res.send({ok: false, message: 'Username is not long enough'});
                 return;
             }
 
             if(typeof req.body.email === 'undefined' || req.body.email.length < 3) {
-                res.send({saved: false, message: 'Email is not valid!'});
+                res.send({ok: false, message: 'Email is not valid'});
                 return;
             }
 
@@ -56,6 +59,7 @@ module.exports = {
             });
         });
 
+        // get: api/user/summoners body: none
         route.get('/summoners', function (req, res) {
             auth.isVerified(req, function (ver) {
                 if (ver) {
@@ -63,15 +67,16 @@ module.exports = {
                         db.getUser({
                             name: decoded.user.name
                         }, function(doc) {
-                            res.json({summoners: doc.summoners});
+                            res.json({ok: true, summoners: doc.summoners});
                         });
                     });
                 } else {
-                    res.sendStatus(401);
+                    res.status(401).json({ok: false, message: 'Unauthorized'});
                 }
             });
         });
 
+        // post: api/user/summoner body: name
         route.post('/summoner', function (req, res) {
             var resp = res;
             auth.isVerified(req, function (ver){
@@ -93,24 +98,35 @@ module.exports = {
                                         doc.summoners.push(summoner);
                                         doc.save(function(err) {
                                             if(err !== null) {
-                                                resp.status(500).json({message:'Internal server error(please contact the administrators)'});
+                                                resp.status(500).json({ok: false, message:'Internal server error(please contact the administrators)'});
                                             } else {
                                                 resp.json({ok: true});
                                             }
                                         });
                                     } else {
-                                        resp.status(400).json({message:"You already added this summoner!"});
+                                        resp.status(400).json({ok: false, message:"You already added this summoner"});
                                     }
                                 });
                             });
                         } else {
-                            resp.status(400).json({message: "Summoner does not exists!" });
+                            resp.status(400).json({ok: false, message: "Summoner does not exists" });
                         }
                     });
                 } else {
-                    resp.sendStatus(401);
+                    resp.status(401).json({ok: false, message: 'Unauthorized'});
                 }
             })
+        });
+
+        // TODO: endpoint
+        route.delete('/summoner', function (req, res) {
+               auth.isVerified(req, function (ver) {
+                    if(ver) {
+                        // delete summoner by id
+                    } else {
+                        res.status(401).json({ok: false, message: 'Unautorized'});
+                    }
+               });
         });
 
         return route;
