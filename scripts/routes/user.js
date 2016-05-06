@@ -2,6 +2,7 @@ var auth = require('../auth/authHandler.js');
 var db = require('../db/database.js');
 var riot = require('../riot-api/riot.js');
 var _ = require('underscore');
+var emailPatt = new RegExp(/^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i);
 
 module.exports = {
     setupRoutes: function (express) {
@@ -45,6 +46,11 @@ module.exports = {
             }
 
             if(typeof req.body.email === 'undefined' || req.body.email.length < 3) {
+                res.send({ok: false, message: 'Email is not valid'});
+                return;
+            }
+
+            if(!emailPatt.test(req.body.email)){
                 res.send({ok: false, message: 'Email is not valid'});
                 return;
             }
