@@ -87,10 +87,10 @@ module.exports = {
             var resp = res;
             auth.isVerified(req, function (ver){
                 if(ver) {
-                    // CHECK IF VALID SUMMONER
                     if(typeof req.body.region === 'undefined' || req.body.region === null) {
                         req.body.region = 'euw';
                     }
+
                     riot.serverGetSummonerByName(req.body, function (res) {
                         if(res.ok) {
                             var summoner = res.data;
@@ -100,6 +100,7 @@ module.exports = {
                                 }, function(doc) {
                                     var contains = false;
                                     _.each(doc.summoners, function (_summoner) {
+                                        console.log(_summoner.region + ":" + summoner.region);
                                         if(_summoner.id == summoner.id && _summoner.region == summoner.region)
                                             contains = true;
                                     });
