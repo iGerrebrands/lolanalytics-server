@@ -88,7 +88,10 @@ module.exports = {
             auth.isVerified(req, function (ver){
                 if(ver) {
                     // CHECK IF VALID SUMMONER
-                    riot.serverGetSummonerIdByName(req.body.name, function (res) {
+                    if(typeof req.body.region === 'undefined' || req.body.region === null) {
+                        req.body.region = 'euw';
+                    }
+                    riot.serverGetSummonerByName(req.body, function (res) {
                         if(res.ok) {
                             var summoner = res.data;
                             auth.getTokenData(req, function(decoded) {
@@ -97,10 +100,11 @@ module.exports = {
                                 }, function(doc) {
                                     var contains = false;
                                     _.each(doc.summoners, function (_summoner) {
-                                        if(_summoner.id == summoner.id)
+                                        if(_summoner.id == summoner.id && _summoner.region == summoner.region)
                                             contains = true;
                                     });
                                     if(!contains) {
+                                        summoner.region = req.body.region;
                                         doc.summoners.push(summoner);
                                         doc.save(function(err) {
                                             if(err !== null) {
@@ -126,13 +130,50 @@ module.exports = {
 
         // TODO: endpoint
         route.delete('/summoner', function (req, res) {
-               auth.isVerified(req, function (ver) {
-                    if(ver) {
-                        // delete summoner by id
-                    } else {
-                        res.status(401).json({ok: false, message: 'Unautorized'});
+            var resp = res;
+            auth.isVerified(req, function (ver) {
+                if(ver) {
+                    if(typeof req.body.id === 'undefined' || req.body.id === null) {
+                        resp.status(400).json({ok: false, message: 'You forgot the id'});
+                        return;
                     }
-               });
+
+                    if(typeof req.body.region === 'undefined' || req.body.region === null) {
+                        resp.status(400).json({ok: false, message: 'You forgot the region'});
+                        return;
+                    }
+                    // delete summoner by id and region
+                    auth.getTokenData(req, function (decoded) {
+                        db.getUser({
+                            name: decoded.user.name
+                        }, function (doc) {
+                            var summoners = doc.summoners;
+                            var id = -1;
+                            _.each(summoners, function (summoner, ind) {
+                                if(req.body.id == summoner.id && req.body.region == summoner.region) {
+                                    id = ind;
+                                }
+                            });
+                            if(id !== -1) {
+                                summoners.splice(id, 1);
+                            } else {
+                                resp.status(400).json({ok: false, message:'Summoner not found'});
+                                return;
+                            }
+
+                            doc.save(function(err) {
+                                if(err !== null) {
+                                    resp.status(500).json({ok: false, message:'Internal server error(please contact the administrators)'});
+                                } else {
+                                    resp.json({ok: true, message: 'Summoner removed successfully'});
+                                }
+                            });
+                        });
+                    });
+                } else {
+                    res.status(401).json({ok: false, message: 'Unautorized'});
+                }
+            });
         });
 
         return route;

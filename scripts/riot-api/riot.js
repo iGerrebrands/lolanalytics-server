@@ -32,10 +32,10 @@ module.exports = {
             res.sendStatus(400);
         }
     },
-    serverGetSummonerIdByName: function (name, callback) {
-        request('https://euw.api.pvp.net/api/lol/euw/v1.4/summoner/by-name/' + name + '?api_key=' + CONFIG.API.KEY, function (err, res, body) {
+    serverGetSummonerByName: function (req, callback) {
+        request('https://' + req.region + '.api.pvp.net/api/lol/' + req.region + '/v1.4/summoner/by-name/' + req.name + '?api_key=' + CONFIG.API.KEY, function (err, res, body) {
             if(!err && res.statusCode === 200) {
-                var summoner = JSON.parse(body)[name.toLowerCase()];
+                var summoner = JSON.parse(body)[req.name.toLowerCase()];
                 callback({ok: true, data: summoner});
             } else {
                 callback({ok: false})
