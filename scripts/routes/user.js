@@ -128,7 +128,7 @@ module.exports = {
             })
         });
 
-        // TODO: endpoint
+        // delete: api/user/summoner body: id, region
         route.delete('/summoner', function (req, res) {
             var resp = res;
             auth.isVerified(req, function (ver) {
@@ -142,7 +142,7 @@ module.exports = {
                         resp.status(400).json({ok: false, message: 'You forgot the region'});
                         return;
                     }
-                    // delete summoner by id and region
+
                     auth.getTokenData(req, function (decoded) {
                         db.getUser({
                             name: decoded.user.name
